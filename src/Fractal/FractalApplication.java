@@ -2,47 +2,58 @@ package Fractal;
 
 import javafx.application.Application;
 import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
+import javafx.scene.control.Button;
+import javafx.scene.image.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 
 public class FractalApplication extends Application {
 
-    private double dx = 0.01;
+    private double dx = 0.005;
     private double x0 = -2;
-    private double y0 = 2;
-    private int imgWidth = 400;
-    private int imgHeight = 400;
+    private double y0 = 1.5;
 
-    private ImageView imageView = new ImageView();
     private double tmpX;
     private double tmpY;
     private double distX;
     private double distY;
+
+    private ImageView imageView = new ImageView();
+    private Fractal fractal = new Mandelbrot();
+    private Palette palette = new HSBPalette();
+    private Properties properties = new Properties();
     private Pane pane;
-    private WritableImage prevImg = null;
-    private int temp;
+    private Button saveButton = new Button("Save");
+    private Button loadButton = new Button("Load");
     private Task<WritableImage> writableImageTask = null;
+    private FileChooser fileChooser = new FileChooser();
+    private int width;
+    private int height;
 
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Circle Fractal");
         Parent root = initInterface();
 
+        fileChooser.setInitialDirectory(new File("."));
+
         initInteraction();
 
-        primaryStage.setScene(new Scene(root, imgWidth, imgHeight));
+        primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
 
@@ -58,10 +69,10 @@ public class FractalApplication extends Application {
                     else
                         dx /= 1.5;
 
-                    x0 += imgWidth * (oldDx - dx) / 2;
-                    y0 -= imgHeight * (oldDx - dx) / 2;
+                    x0 += pane.getWidth() * (oldDx - dx) / 2;
+                    y0 -= pane.getHeight() * (oldDx - dx) / 2;
 
-                    drawFractal(imgWidth, imgHeight);
+                    drawFractal();
                 }
         );
 
@@ -88,40 +99,50 @@ public class FractalApplication extends Application {
                 a -> {
                     x0 += -(a.getSceneX() - tmpX) * dx;
                     y0 += (a.getSceneY() - tmpY) * dx;
-                    drawFractal(imgWidth, imgHeight);
+                    drawFractal();
                     imageView.setX(0);
                     imageView.setY(0);
                 }
         );
 
-//        pane.heightProperty().addListener(
-//                prop -> {
-//                    if (imgHeight < pane.getHeight()) {
-//                        int sy = imgHeight;
-//                        temp = (int) pane.getHeight() - imgHeight;
-//                        imgHeight = (int) pane.getHeight();
-//                        imageView.setImage(drawFractal(imgWidth, imgHeight, 0, sy));
-//                    }
-//                }
-//        );
-//
-//        pane.widthProperty().addListener(
-//                prop -> {
-//                    if (imgWidth < pane.getWidth()) {
-//                        int sx = imgWidth;
-//                        temp = (int) pane.getWidth() - imgWidth;
-//                        imgWidth = (int) pane.getWidth();
-//                        imageView.setImage(drawFractal(imgWidth, imgHeight, sx, 0));
-//                    }
-//                }
-//        );
+        pane.heightProperty().addListener(
+                prop -> {
+                    int paneHeight = (int) pane.getHeight();
+                    if (height < paneHeight) {
+                        height = paneHeight;
+                        drawFractal();
+                    }
+                }
+        );
+
+        pane.widthProperty().addListener(
+                prop -> {
+                    int paneWidth = (int) pane.getWidth();
+                    if (width < paneWidth) {
+                        width = paneWidth;
+                        drawFractal();
+                    }
+                }
+        );
+
+        saveButton.setOnAction(
+                e -> saveImage(imageView.getImage())
+        );
+
+        loadButton.setOnAction(
+                e -> loadParameters()
+        );
     }
 
-    private void drawFractal(int width, int height) {
+    private void drawFractal() {
 
-//        if (height == 0 || width == 0)
-//            return null;
+        width = (int) pane.getWidth();
+        height = (int) pane.getHeight();
 
+        if (width <= 0 || height <= 0)
+            return;
+
+        System.out.println(width + " " + height);
 
         if (writableImageTask != null)
             writableImageTask.cancel();
@@ -130,8 +151,6 @@ public class FractalApplication extends Application {
             @Override
             protected WritableImage call() {
 
-                Fractal fractal = new Mandelbrot();
-                Palette palette = new HSBPalette();
                 WritableImage writableImage = new WritableImage(width, height);
                 PixelWriter pixelWriter = writableImage.getPixelWriter();
 
@@ -144,7 +163,7 @@ public class FractalApplication extends Application {
                         pixelWriter.setColor(i, j, color);
 
                     }
-                    updateValue(copy(writableImage));
+                    updateValue(new WritableImage(writableImage.getPixelReader(), width, height));
                     if (isCancelled())
                         return null;
                 }
@@ -158,41 +177,57 @@ public class FractalApplication extends Application {
         writableImageTask.onSucceededProperty().addListener(e -> writableImageTask = null);
 
 
-//        if (sx > 0 || sy > 0) {
-//            PixelReader pr = prevImg.getPixelReader();
-//
-//
-//            for (int i = 0; i < Math.max(sx, width - temp); i++) {
-//                for (int j = 0; j < Math.max(sy, height - temp); j++) {
-//                    pixelWriter.setColor(i, j, pr.getColor(i, j));
-//                }
-//            }
-//        }
-//
-//        prevImg = writableImage;
-//        return writableImage;
     }
 
-    private WritableImage copy(WritableImage writableImage) {
-        WritableImage copyWI = new WritableImage(imgWidth, imgHeight);
-        PixelReader pixelReader = writableImage.getPixelReader();
-        PixelWriter pixelWriter = copyWI.getPixelWriter();
-        for (int i = 0; i < imgWidth; i++) {
-            for (int j = 0; j < imgHeight; j++) {
-                pixelWriter.setColor(i, j, pixelReader.getColor(i, j));
-            }
+    private void saveImage(Image img) {
+        BufferedImage bi = SwingFXUtils.fromFXImage(img, null);
+
+        File output = fileExtension("PNG Image", "*.png").showSaveDialog(null);
+
+        try {
+            ImageIO.write(bi, "png", output);
+        } catch (IOException e) {
+            System.out.println("Error: " + e);
         }
-        return copyWI;
+    }
+
+    private void loadParameters() {
+        String fileName = fileExtension("Properties File", "*.properties")
+                .showOpenDialog(null).getName();
+        try {
+            properties.load(new InputStreamReader(
+                    new FileInputStream(fileName),
+                    StandardCharsets.UTF_8
+            ));
+
+            x0 = Double.parseDouble(properties.getProperty("x0"));
+            y0 = Double.parseDouble(properties.getProperty("y0"));
+            dx = Double.parseDouble(properties.getProperty("dx"));
+
+            drawFractal();
+        } catch (IOException e) {
+            System.out.println("Error: " + e);
+        }
+    }
+
+    private FileChooser fileExtension(String description, String ext) {
+        FileChooser.ExtensionFilter filter = new FileChooser.ExtensionFilter(description, ext);
+        fileChooser.getExtensionFilters().add(filter);
+        fileChooser.setSelectedExtensionFilter(filter);
+
+        return fileChooser;
     }
 
     private Parent initInterface() {
-        VBox.setVgrow(imageView, Priority.ALWAYS);
-        HBox.setHgrow(imageView, Priority.ALWAYS);
-        drawFractal(imgWidth, imgHeight);
+        HBox hBox = new HBox(saveButton, loadButton);
 
         pane = new Pane(imageView);
+        pane.setPrefSize(600, 600);
 
-        return pane;
+        VBox vBox = new VBox(hBox, pane);
+        VBox.setVgrow(pane, Priority.ALWAYS);
+
+        return vBox;
     }
     /*
     При вычислении нового изображения запускаем новый Task. Он вычисляет изображение

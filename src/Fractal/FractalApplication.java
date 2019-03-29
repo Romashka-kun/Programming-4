@@ -141,8 +141,6 @@ public class FractalApplication extends Application {
         if (width <= 0 || height <= 0)
             return;
 
-        System.out.println(width + " " + height);
-
         if (writableImageTask != null)
             writableImageTask.cancel();
 

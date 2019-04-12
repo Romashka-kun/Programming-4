@@ -2,11 +2,11 @@ package drawing_svg;
 
 import java.util.List;
 
-public class Shape {
+public interface Shape {
 
-    private List<Tag> tagList;
+    List<Tag> getTags();
 
-    public List<Tag> getTags() {
-        return tagList;
+    default void draw(SVG svg) {
+
     }
 }

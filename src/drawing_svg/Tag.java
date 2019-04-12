@@ -6,21 +6,32 @@ import java.util.Map;
 public class Tag {
 
     private String name;
-    private Map<String, String> map = new HashMap<>();
+    private TagType type;
+    private Map<String, String> attributes = new HashMap<>();
 
     public Tag(String name) {
         this.name = name;
+        this.type = TagType.OPEN_AND_CLOSE;
     }
 
-    public void set(String prop, String value) {
-        map.put(prop, value);
+    public Tag(String name, TagType type) {
+        this.name = name;
+        this.type = type;
     }
 
-    public String getName() {
+    void set(String prop, String value) {
+        attributes.put(prop, value);
+    }
+
+    TagType getType() {
+        return type;
+    }
+
+    String getName() {
         return name;
     }
 
-    public Map<String, String> getMap() {
-        return map;
+    Map<String, String> getAttributes() {
+        return attributes;
     }
 }

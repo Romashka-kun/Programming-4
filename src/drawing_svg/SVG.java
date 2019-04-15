@@ -9,22 +9,31 @@ public class SVG implements AutoCloseable {
     private PrintStream printStream;
 
     public SVG(String name, int width, int height) throws FileNotFoundException {
-        printStream = new PrintStream(name + ".svg");
+        printStream = new PrintStream(name);
         printStream.print(String.format("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\">\n",
                 width, height));
     }
 
     void addTag(Tag tag) {
-        String attr = tag.getAttributes().entrySet()
+        String attr = tag.getAttributes()
                 .stream()
                 .map(entry -> entry.getKey() + "=\"" + entry.getValue() + "\"")
                 .collect(Collectors.joining(" "));
-        if (tag.getType() == TagType.OPEN_AND_CLOSE)
-            printStream.print("<" + tag.getName() + " " + attr + " />\n");
-        else if (tag.getType() == TagType.OPEN)
-            printStream.print("<" + tag.getName() + " " + attr + ">\n");
-        else
-            printStream.print("</" + tag.getName() + ">\n");
+
+        switch (tag.getType()) {
+            case OPEN_AND_CLOSE:
+                printStream.print("<" + tag.getName() + " " + attr + " />\n");
+                break;
+            case OPEN:
+                printStream.print("<" + tag.getName() + " " + attr + ">\n");
+                break;
+            case CLOSE:
+                printStream.print("</" + tag.getName() + ">\n");
+                break;
+            default:
+                System.out.println("Invalid Tag Type");
+                break;
+        }
     }
 
     @Override

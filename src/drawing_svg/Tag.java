@@ -2,6 +2,7 @@ package drawing_svg;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class Tag {
 
@@ -31,7 +32,7 @@ public class Tag {
         return name;
     }
 
-    Map<String, String> getAttributes() {
-        return attributes;
+    Set<Map.Entry<String, String>> getAttributes() {
+        return attributes.entrySet();
     }
 }

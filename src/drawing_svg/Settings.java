@@ -1,6 +1,8 @@
 package drawing_svg;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -17,10 +19,14 @@ public class Settings {
 
     private Settings() {
         properties = new Properties();
-//        properties.load(new InputStreamReader(
-//                new FileInputStream("svg.properties"),
-//                StandardCharsets.UTF_8
-//        ));
+        try {
+            properties.load(new InputStreamReader(
+                    new FileInputStream("svg.properties"),
+                    StandardCharsets.UTF_8
+            ));
+        } catch (IOException e) {
+            System.out.println("Unable to read the file");
+        }
     }
 
     public String getBackground() {

@@ -35,14 +35,14 @@ public class SvgApplication {
         Tag rect2 = new Tag("rect");
         rect2.set("x", "20");
         rect2.set("y", "20");
-        rect2.set("width", "80");
+        rect2.set("width", "100");
         rect2.set("height", "100");
         rect2.set("style", "stroke:#ff0000; fill: #00ff00");
 
         Tag g = new Tag("g", TagType.OPEN);
         g.set("transform", "translate(150, 150)");
         Tag gClose = new Tag("g", TagType.CLOSE);
-
+        
         try (SVG svg = new SVG("a.svg", 300, 300)) {
             svg.addTag(rect1);
             svg.addTag(rect2);
@@ -50,6 +50,8 @@ public class SvgApplication {
             svg.addTag(rect1);
             svg.addTag(rect2);
             svg.addTag(gClose);
+            new PositionedShape(new RedCircle(), 100, 100).draw(svg);
+            new PositionedShape(new SmallSquare(), 200, 200).draw(svg);
         } catch (FileNotFoundException e) {
             System.out.println("File does not exist");
         }

@@ -1,11 +1,12 @@
 package drawing_svg;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 public class Settings {
@@ -13,7 +14,7 @@ public class Settings {
     private static Settings instance = new Settings();
     private final Properties properties;
 
-    public static Settings getInstance() {
+    static Settings getInstance() {
         return instance;
     }
 
@@ -29,23 +30,37 @@ public class Settings {
         }
     }
 
-    public String getBackground() {
+    String getBackground() {
         return properties.getProperty("background");
     }
 
-    public int getWidth() {
+    int getWidth() {
         return Integer.parseInt(properties.getProperty("width"));
     }
 
-    public int getHeight() {
+    int getHeight() {
         return Integer.parseInt(properties.getProperty("height"));
     }
 
-//    public Map<String, Integer> getShapeWithCount() {
-//        return properties.getProperty("shapeWithCount");
-//    }
+    public Map<String, Integer> getShapeWithCount() {
+        Map<String, Integer> map = new HashMap<>();
+        for (String s : properties.getProperty("draw").split(" ")) {
+            String[] strings = s.split(":");
+            map.put(strings[0], Integer.parseInt(strings[1]));
+        }
+        return map;
+    }
 
-    public String getShapeDescription() {
-        return properties.getProperty("shapeDescription");
+    public String getShapeDescription(String shapeName) {
+        return properties.getProperty("shape." + shapeName);
+    }
+
+    public Optional<Long> getRandSeed() {
+        String seed = properties.getProperty("rand_seed");
+
+        if (seed.equals("auto"))
+            return Optional.empty();
+
+        return Optional.of(Long.parseLong(seed));
     }
 }

@@ -20,19 +20,19 @@ public class Tag {
         this.type = type;
     }
 
-    void set(String prop, String value) {
+    public void set(String prop, String value) {
         attributes.put(prop, value);
     }
 
-    TagType getType() {
+    public TagType getType() {
         return type;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    Set<Map.Entry<String, String>> getAttributes() {
+    public Set<Map.Entry<String, String>> getAttributes() {
         return attributes.entrySet();
     }
 }

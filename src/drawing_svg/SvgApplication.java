@@ -1,59 +1,69 @@
 package drawing_svg;
 
 import java.io.FileNotFoundException;
+import java.util.*;
 
 public class SvgApplication {
 
     public static void main(String[] args) {
-//        Tag rect = new Tag("rect");
-//        rect.set("x", "200");
-//        rect.set("y", "200");
-//        rect.set("width", "80");
-//        rect.set("height", "100");
-//        rect.set("style", "stroke:#ff0000; fill: #0000ff");
-//
-//        Tag circle = new Tag("circle");
-//        circle.set("cx", "100");
-//        circle.set("cy", "100");
-//        circle.set("r", "50");
-//        circle.set("style", "fill: #00fcab");
-//
-//        try (SVG svg = new SVG("svgImg", 300, 300)) {
-//            svg.addTag(rect);
-//            svg.addTag(circle);
-//        } catch (FileNotFoundException e) {
-//            System.out.println("File does not exist");
-//        }
 
-        Tag rect1 = new Tag("rect");
-        rect1.set("x", "10");
-        rect1.set("y", "10");
-        rect1.set("width", "100");
-        rect1.set("height", "100");
-        rect1.set("style", "stroke:#ff0000; fill: #0000ff");
+        int width = Settings.getInstance().getWidth();
+        int height = Settings.getInstance().getHeight();
 
-        Tag rect2 = new Tag("rect");
-        rect2.set("x", "20");
-        rect2.set("y", "20");
-        rect2.set("width", "100");
-        rect2.set("height", "100");
-        rect2.set("style", "stroke:#ff0000; fill: #00ff00");
+        Tag background = new Tag("rect");
+        background.set("width", String.valueOf(width));
+        background.set("height", String.valueOf(height));
+        background.set("style", "fill: " + Settings.getInstance().getBackground());
 
-        Tag g = new Tag("g", TagType.OPEN);
-        g.set("transform", "translate(150, 150)");
-        Tag gClose = new Tag("g", TagType.CLOSE);
-        
-        try (SVG svg = new SVG("a.svg", 300, 300)) {
-            svg.addTag(rect1);
-            svg.addTag(rect2);
-            svg.addTag(g);
-            svg.addTag(rect1);
-            svg.addTag(rect2);
-            svg.addTag(gClose);
-            new PositionedShape(new RedCircle(), 100, 100).draw(svg);
-            new PositionedShape(new SmallSquare(), 200, 200).draw(svg);
+        try (SVG svg = new SVG("a.svg", width, height)) {
+            svg.addTag(background);
+
+            ShapeFactory factory = new ShapeFactory();
+
+            Optional<Long> seed = Settings.getInstance().getRandSeed();
+
+            Random random = seed.map(Random::new).orElseGet(Random::new);
+
+//            Random random;
+//            //noinspection OptionalIsPresent
+//            if (seed.isPresent())
+//                random = new Random(seed.get());
+//            else
+//                random = new Random();
+
+            for (Map.Entry<String, Integer> entry : Settings.getInstance().getShapeWithCount().entrySet()) {
+                for (int i = 0; i < entry.getValue(); i++) {
+                    try {
+
+                        new PositionedShape(
+                                factory.create(Settings.getInstance().getShapeDescription(entry.getKey())),
+                                random.nextInt(width), random.nextInt(height)
+                        ).draw(svg);
+                    } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+//            Settings.getInstance().getShapeWithCount().forEach((key, value) -> IntStream.rangeClosed(1, value)
+//                    .forEach(i -> new PositionedShape(
+//                            factory.create(key), random.nextInt(width), random.nextInt(height)
+//                    ).draw(svg)));
+
         } catch (FileNotFoundException e) {
             System.out.println("File does not exist");
         }
     }
 }
+
+
+//      Коллекции могут поддерживать или не поддерживать операции удаления, добавления и т.д.
+//      ArrayList<> поддерживает всё, но иногда это может стать проблемой.
+//      RedCircle.getTags() возвращает List<Tag>, но там можно изменить список тегов (add(new Tag(...))).
+//      Это странно, и нам это не надо.
+//          1) getTags - возвращает новую коллекццию return new ArrayList<>
+//          2) коллекция, которую нельзя менять:
+//              - Collections.unmodifiableList(...)
+//              - сразу печатается Arrays.asList(..., ..., ...)  (Java 11: List.of(..., ..., ...))
+//              - Collections.singletonList(...)
+//              - Collections.emptyList()

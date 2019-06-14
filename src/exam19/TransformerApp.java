@@ -59,7 +59,7 @@ public class TransformerApp {
 
         turtle.up();
         turtle.setDirection(0);
-        turtle.move(-pathLen / 13);
+        turtle.move(-729);
         turtle.down();
 
         for (int i = 0; i < pathLen; i++) {

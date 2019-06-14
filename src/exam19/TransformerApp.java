@@ -58,7 +58,7 @@ public class TransformerApp {
         Pen turtle = new StandardPen(window);
 
         turtle.up();
-        turtle.setDirection(1);
+        turtle.setDirection(0);
         turtle.move(-pathLen / 13);
         turtle.down();
 

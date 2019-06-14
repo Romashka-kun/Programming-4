@@ -12,8 +12,9 @@ public class TransformerApp {
 
     public static void main(String[] args) {
 
+        int times = 6;
         StringTransformer transformer = s -> s.replace("F", "F+F--F+F");
-        String turtlePath = transformer.transform("F", 6);
+        String turtlePath = transformer.transform("F", times);
 
         try {
             Files.writeString(Paths.get("f-transformer.txt"), turtlePath);
@@ -52,19 +53,20 @@ public class TransformerApp {
             e.printStackTrace();
         }
 
-        int pathLen = turtlePath.length();
+        int thickness = 2;
+        double xOffset = -Math.pow(3, times) * thickness / 2;
 
         SketchPadWindow window = new SketchPadWindow(500, 500);
         Pen turtle = new StandardPen(window);
 
         turtle.up();
         turtle.setDirection(0);
-        turtle.move(-729);
+        turtle.move(xOffset);
         turtle.down();
 
-        for (int i = 0; i < pathLen; i++) {
+        for (int i = 0; i < turtlePath.length(); i++) {
             if (turtlePath.charAt(i) == 'F')
-                turtle.move(2);
+                turtle.move(thickness);
             else if (turtlePath.charAt(i) == '+')
                 turtle.turn(60);
             else

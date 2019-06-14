@@ -53,20 +53,22 @@ public class TransformerApp {
             e.printStackTrace();
         }
 
-        int thickness = 2;
-        double xOffset = -Math.pow(3, times) * thickness / 2;
+        int step = 1;
+        double xOffset = -Math.pow(3, times) * step / 2;
+        double yOffset = xOffset * 2 / 3.5;
 
         SketchPadWindow window = new SketchPadWindow(500, 500);
         Pen turtle = new StandardPen(window);
 
         turtle.up();
+        turtle.move(yOffset);
         turtle.setDirection(0);
         turtle.move(xOffset);
         turtle.down();
 
         for (int i = 0; i < turtlePath.length(); i++) {
             if (turtlePath.charAt(i) == 'F')
-                turtle.move(thickness);
+                turtle.move(step);
             else if (turtlePath.charAt(i) == '+')
                 turtle.turn(60);
             else
